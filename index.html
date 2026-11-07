@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Harajatlarim</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1f7a55">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Harajatlarim">
+<link rel="apple-touch-icon" href="icon-180.png">
+<style>
+:root{--bg:#f3f6f2;--card:#ffffff;--ink:#17261f;--mute:#66766d;--line:#dbe4dd;--accent:#1f7a55;--accent-ink:#ffffff;--danger:#b3412f;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#101a15;--card:#18261f;--ink:#e8f1ec;--mute:#93a79b;--line:#2a3d33;--accent:#4cc38a;--accent-ink:#0c1a13;--danger:#e8806e;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#101a15;--card:#18261f;--ink:#e8f1ec;--mute:#93a79b;--line:#2a3d33;--accent:#4cc38a;--accent-ink:#0c1a13;--danger:#e8806e;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif;line-height:1.45}
+main{max-width:520px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:1.5rem;margin:0 0 14px;font-weight:700}
+.total{background:var(--accent);color:var(--accent-ink);border-radius:18px;padding:20px}
+.total small{opacity:.85;font-size:.9rem}
+.total b{display:block;font-size:2.3rem;letter-spacing:-.5px;margin-top:2px}
+.row{display:flex;gap:10px;margin-top:12px}
+.row>div{flex:1;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.row small{color:var(--mute);font-size:.8rem}
+.row b{display:block;font-size:1.05rem}
+section{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-top:16px}
+h2{font-size:1.05rem;margin:0 0 10px}
+input,select,button{font:inherit;color:var(--ink)}
+input,select{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);margin-bottom:8px}
+input:focus,select:focus,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.two{display:flex;gap:8px}
+.two>*{flex:1}
+.add{width:100%;padding:12px;border:0;border-radius:10px;background:var(--accent);color:var(--accent-ink);font-weight:700;cursor:pointer}
+.filters{display:flex;gap:8px;margin-bottom:10px}
+.filters select{margin:0}
+.bar{margin:7px 0}
+.bar div{display:flex;justify-content:space-between;font-size:.92rem}
+.bar i{display:block;height:8px;border-radius:5px;background:var(--accent);margin-top:3px;min-width:3px}
+.item{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+.item:first-of-type{border-top:0}
+.item .t{flex:1;min-width:0}
+.item .t span{display:block;color:var(--mute);font-size:.8rem}
+.item .t strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.item .s{font-weight:700;white-space:nowrap}
+.del{border:0;background:none;color:var(--danger);font-size:1.2rem;cursor:pointer;padding:4px 8px}
+.empty{color:var(--mute);text-align:center;padding:14px 0}
+.link{background:none;border:0;color:var(--mute);text-decoration:underline;cursor:pointer;margin-top:14px;font-size:.85rem}
+</style>
+</head>
+<body>
+<main>
+<h1>Harajatlarim</h1>
+<div class="total"><small id="mname">Shu oy</small><b id="tmonth">0 so‘m</b></div>
+<div class="row">
+<div><small>Bugun</small><b id="ttoday">0</b></div>
+<div><small>Jami</small><b id="tall">0</b></div>
+<div><small>Kunlik o‘rtacha</small><b id="tavg">0</b></div>
+</div>
+
+<section>
+<h2>Harajat qo‘shish</h2>
+<input id="title" placeholder="Nima uchun? (masalan: non)" maxlength="60">
+<div class="two">
+<input id="amount" type="number" inputmode="numeric" min="0" placeholder="Summa (so‘m)">
+<input id="date" type="date">
+</div>
+<select id="cat">
+<option>Oziq-ovqat</option><option>Transport</option><option>Uy-joy</option><option>Kommunal</option><option>Kiyim</option><option>Salomatlik</option><option>Ko‘ngilochar</option><option>Boshqa</option>
+</select>
+<button class="add" id="addBtn">Qo‘shish</button>
+</section>
+
+<section>
+<h2>Toifalar bo‘yicha</h2>
+<div id="cats"></div>
+</section>
+
+<section>
+<h2>Harajatlar ro‘yxati</h2>
+<div class="filters">
+<select id="fmonth"></select>
+<select id="fcat"><option value="">Barcha toifalar</option></select>
+</div>
+<div id="list"></div>
+</section>
+<button class="link" id="clear">Barcha ma’lumotni o‘chirish</button>
+</main>
+<script>
+(function(){
+var KEY="harajatlar_v1",items=[];
+var cats=["Oziq-ovqat","Transport","Uy-joy","Kommunal","Kiyim","Salomatlik","Ko‘ngilochar","Boshqa"];
+var months=["Yanvar","Fevral","Mart","Aprel","May","Iyun","Iyul","Avgust","Sentabr","Oktabr","Noyabr","Dekabr"];
+function $(i){return document.getElementById(i)}
+function load(){try{var r=localStorage.getItem(KEY);items=r?JSON.parse(r):[]}catch(e){items=[]}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(items))}catch(e){}}
+function fmt(n){return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g," ")}
+function today(){var d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+function sum(a){return a.reduce(function(s,x){return s+x.amount},0)}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function monthKey(d){return d.slice(0,7)}
+function fillFilters(){
+var keys={};keys[monthKey(today())]=1;items.forEach(function(x){keys[monthKey(x.date)]=1});
+var arr=Object.keys(keys).sort().reverse(),cur=$("fmonth").value||arr[0];
+$("fmonth").innerHTML=arr.map(function(k){var p=k.split("-");return'<option value="'+k+'">'+months[+p[1]-1]+" "+p[0]+"</option>"}).join("");
+$("fmonth").value=arr.indexOf(cur)>-1?cur:arr[0];
+if($("fcat").options.length==1)cats.forEach(function(c){var o=document.createElement("option");o.value=o.textContent=c;$("fcat").appendChild(o)});
+}
+function render(){
+fillFilters();
+var mk=$("fmonth").value,fc=$("fcat").value;
+var inMonth=items.filter(function(x){return monthKey(x.date)==mk});
+var p=mk.split("-");$("mname").textContent=months[+p[1]-1]+" "+p[0]+" — jami";
+$("tmonth").textContent=fmt(sum(inMonth))+" so‘m";
+$("ttoday").textContent=fmt(sum(items.filter(function(x){return x.date==today()})));
+$("tall").textContent=fmt(sum(items));
+var days=new Set(inMonth.map(function(x){return x.date})).size;
+$("tavg").textContent=fmt(days?sum(inMonth)/days:0);
+var by={};inMonth.forEach(function(x){by[x.cat]=(by[x.cat]||0)+x.amount});
+var tot=sum(inMonth),keys=Object.keys(by).sort(function(a,b){return by[b]-by[a]});
+$("cats").innerHTML=keys.length?keys.map(function(k){var pc=tot?by[k]/tot*100:0;return'<div class="bar"><div><span>'+esc(k)+'</span><span>'+fmt(by[k])+" ("+Math.round(pc)+'%)</span></div><i style="width:'+pc+'%"></i></div>'}).join(""):'<div class="empty">Bu oyda ma’lumot yo‘q</div>';
+var list=inMonth.filter(function(x){return!fc||x.cat==fc}).sort(function(a,b){return a.date<b.date?1:a.date>b.date?-1:b.id-a.id});
+$("list").innerHTML=list.length?list.map(function(x){return'<div class="item"><div class="t"><strong>'+esc(x.title)+'</strong><span>'+esc(x.cat)+" · "+x.date.split("-").reverse().join(".")+'</span></div><div class="s">'+fmt(x.amount)+'</div><button class="del" data-id="'+x.id+'" aria-label="O‘chirish">×</button></div>'}).join(""):'<div class="empty">Hozircha harajat yo‘q. Yuqorida birinchisini qo‘shing.</div>';
+}
+$("date").value=today();
+$("addBtn").onclick=function(){
+var t=$("title").value.trim(),a=parseFloat($("amount").value),d=$("date").value||today();
+if(!a||a<=0){$("amount").focus();return}
+items.push({id:Date.now(),title:t||$("cat").value,amount:a,cat:$("cat").value,date:d});
+save();$("title").value="";$("amount").value="";$("fmonth").value=monthKey(d);render();
+};
+$("list").onclick=function(e){var id=e.target.getAttribute&&e.target.getAttribute("data-id");if(!id)return;items=items.filter(function(x){return String(x.id)!==id});save();render()};
+$("fmonth").onchange=render;$("fcat").onchange=render;
+$("clear").onclick=function(){if(confirm("Barcha harajatlar o‘chirilsinmi?")){items=[];save();render()}};
+load();render();
+})();
+if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){})})}
+</script>
+</body>
+</html>
